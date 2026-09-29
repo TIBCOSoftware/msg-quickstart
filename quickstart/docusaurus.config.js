@@ -11,7 +11,7 @@ const config = {
   // GitHub Pages for this (private) repo is served at a rotating "pages.github.io"
   // subdomain, not tibco.github.io/msg-quickstart. If the subdomain rotates, update it here.
   url: 'https://tibcosoftware.github.io',
-  baseUrl: '/',
+  baseUrl: '/msg-quickstart/',
 
   organizationName: 'TIBCOSoftware',
   projectName: 'msg-quickstart',
