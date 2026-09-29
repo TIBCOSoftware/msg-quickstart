@@ -1,0 +1,13 @@
+/* Hide the redundant Linux/Windows tab bar; the block should read as a single
+ * code block whose highlighting silently follows the doc-wide OS tab choice. */
+.osCodeBlock :global(ul.tabs) {
+  display: none;
+}
+
+/* Neutralise the extra padding Docusaurus adds around Tabs so the block sits
+ * flush like a normal fenced code block. */
+.osCodeBlock :global(.margin-top--md),
+.osCodeBlock :global(div[role="tabpanel"]) {
+  margin-top: 0;
+  padding-top: 0;
+}

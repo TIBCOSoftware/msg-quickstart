@@ -1,0 +1,160 @@
+.hero {
+  padding: 5rem 0 4rem;
+  text-align: center;
+  background: linear-gradient(
+    135deg,
+    var(--ifm-color-primary-dark) 0%,
+    var(--ifm-color-primary) 60%,
+    var(--ifm-color-primary-light) 100%
+  );
+  color: #fff;
+}
+
+.heroTitle {
+  font-size: clamp(2rem, 5vw, 3.5rem);
+  font-weight: 600;
+  margin-bottom: 0.5rem;
+}
+
+.heroTagline {
+  font-size: clamp(1rem, 2vw, 1.35rem);
+  opacity: 0.9;
+  margin-bottom: 0;
+}
+
+/* 3D flippers driven by a React `side` state (front | back). Faces are
+ * absolutely positioned so they don't inflate the box to the widest face's
+ * width — only the invisible `.flipSizer` sets the line-height baseline.
+ * `.flip`'s width transitions between the two measured face widths; whichever
+ * direction is a shrink is delayed until the wider face is backface-hidden so
+ * the wide text never overflows into the next word. */
+.flip {
+  display: inline-block;
+  position: relative;
+  perspective: 600px;
+  vertical-align: baseline;
+  font-weight: 600;
+  width: var(--flip-w-front, max-content);
+  transition: width 320ms cubic-bezier(0.4, 0, 0.2, 1);
+  transition-delay: var(--flip-delay-front, 0ms);
+  will-change: width;
+}
+
+.flipPhaseBack {
+  width: var(--flip-w-back, max-content);
+  transition-delay: var(--flip-delay-back, 320ms);
+}
+
+.flipSizer {
+  visibility: hidden;
+  white-space: nowrap;
+}
+
+.flipRotator {
+  position: absolute;
+  inset: 0;
+  transform-style: preserve-3d;
+  transform: rotateX(0deg);
+  transition: transform 640ms cubic-bezier(0.4, 0, 0.2, 1);
+  will-change: transform;
+}
+
+.flipPhaseBack .flipRotator {
+  transform: rotateX(-180deg);
+}
+
+/* translateZ(0) forces each face onto its own compositor layer so Firefox
+ * reliably applies backface-visibility during the rotation (otherwise the two
+ * faces can bleed through each other and render as mirrored/garbled text). */
+.flipFace {
+  position: absolute;
+  top: 0;
+  left: 0;
+  backface-visibility: hidden;
+  -webkit-backface-visibility: hidden;
+  white-space: nowrap;
+}
+
+.flipFront {
+  transform: translateZ(0);
+}
+
+.flipBack {
+  transform: rotateX(180deg) translateZ(0);
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .flip,
+  .flipRotator {
+    transition: none;
+    will-change: auto;
+  }
+  .flipBack {
+    display: none;
+  }
+}
+
+.main {
+  padding: 3rem 0 4rem;
+}
+
+.cards {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(320px, 1fr));
+  gap: 1.5rem;
+}
+
+/* The <div> wrapping each <Link> exists so pointer events don't get eaten by
+ * Docusaurus's Link (which uses onMouseEnter internally for route preloading). */
+.cardWrapper {
+  display: flex;
+  flex-direction: column;
+}
+
+.card {
+  display: flex;
+  flex-direction: column;
+  flex: 1;
+  padding: 2rem;
+  border-radius: 12px;
+  border: 1px solid var(--ifm-color-emphasis-200);
+  background: var(--ifm-background-surface-color);
+  color: inherit;
+  text-decoration: none;
+  transition:
+    transform 150ms ease,
+    box-shadow 150ms ease,
+    border-color 150ms ease;
+}
+
+.card:hover {
+  text-decoration: none;
+  transform: translateY(-2px);
+  border-color: var(--ifm-color-primary);
+  box-shadow: 0 10px 30px rgba(0, 0, 0, 0.08);
+}
+
+.cardHeader {
+  margin-bottom: 1rem;
+}
+
+.cardTitle {
+  margin-bottom: 0.25rem;
+  color: var(--ifm-color-primary);
+}
+
+.cardTagline {
+  font-size: 0.95rem;
+  color: var(--ifm-color-emphasis-700);
+}
+
+.cardBody {
+  flex: 1;
+  margin-bottom: 1.25rem;
+  line-height: 1.6;
+}
+
+.cardCta {
+  font-weight: 600;
+  color: var(--ifm-color-primary);
+}

@@ -1,0 +1,252 @@
+---
+title: "Run TIBCO FTL® Locally"
+sidebar_label: "Run TIBCO FTL Locally"
+pagination_next: null
+pagination_prev: null
+---
+
+import Tabs from '@theme/Tabs';
+import TabItem from '@theme/TabItem';
+import CodeBlock from '@theme/CodeBlock'
+import OsCodeBlock from '@site/src/components/OsCodeBlock';
+import OsTabs from '@site/src/components/OsTabs';
+import ftlVersionVars from '../../ftlVersionVars';
+
+
+:::note
+The local installation for TIBCO FTL is supported on Linux and Windows machines (x86_64). If you are using another operating system, it is recommended that you use the [**Docker-based quickstart**](./qs-docker.mdx).
+:::
+
+## Prerequisites
+
+Before you start, you'll need:
+
+- The latest version of **TIBCO FTL package (enterprise edition)** for your operating system (e.g, TIB_ftl_{ftlVersionVars.ftlVersion}_linux_x86_64.zip)
+- (Optional) A valid **TIBCO FTL license file**
+
+## Installing FTL
+
+<OsTabs>
+<TabItem value="linux">
+  Extract the TIBCO FTL archive file and navigate into the extracted <code>{`TIB_ftl_${ftlVersionVars.ftlVersion}`}</code> directory.
+  <CodeBlock language="bash">
+  {`unzip TIB_ftl_${ftlVersionVars.ftlVersion}_linux_x86_64.zip\n`}
+  {`cd TIB_ftl_${ftlVersionVars.ftlVersion}`}
+  </CodeBlock>
+  You can then install TIBCO FTL using one of these commands, depending on the Linux platform variant.
+  <Tabs 
+    defaultValue="redhat-centos-fedora"
+    groupId='linux-os'
+    values={[{label:'Red Hat/Centos/Fedora', value: 'redhat-centos-fedora'}, {label:'Debian/Ubuntu', value:'debian-ubuntu'}, {label:'SUSE', value:'suse'}, {label: 'Other', value:'other'}]}>
+    <TabItem value='redhat-centos-fedora'>
+    ```bash
+    sudo yum install -y rpm/*.rpm
+    ```
+    </TabItem>
+    <TabItem value='debian-ubuntu'>
+    ```bash
+    sudo dpkg -i deb/*.deb
+    ```
+    </TabItem>  
+    <TabItem value='suse'>
+    ```bash
+    sudo zypper install rpm/*.rpm
+    ```
+    </TabItem>  
+    <TabItem value='other'>
+    ```bash
+    for f in tar/*; do tar zxfv $f; done
+    ```
+    :::tip
+    You must have root privileges to write to the root (/) directory.
+    :::
+    </TabItem>  
+  </Tabs>
+
+
+</TabItem>
+
+<TabItem value="windows">
+To install TIBCO FTL on a windows platform, ensure that the .NET framework is properly installed and up to date. Then, double-click on the FTL installation package icon.
+Once completed, TIBCO FTL is installed in <code>{`C:\\tibco\\ftl\\${ftlVersionVars.ftlVersionTrunc}`}</code>. If the .NET framework is properly installed, then installing TIBCO FTL automatically registers the FTL libraries with the Windows GAC.
+</TabItem>
+</OsTabs>
+
+## Running the FTL Server
+Go to the temporary directory and set the license environment vairable to `preview_mode`, then start the FTL server on a port of your choosing.
+
+:::tip
+The `preview_mode` lets you run TIBCO FTL without a license for 6 hours. If you have a valid TIBCO FTL license, you may replace `preview_mode` with the **absolute path** to your license file. 
+:::
+<OsTabs>
+
+<TabItem value="linux">
+<CodeBlock language="bash">
+{`cd /tmp
+export TIBFTL_LICENSE="preview_mode"
+/opt/tibco/ftl/${ftlVersionVars.ftlVersionTrunc}/bin/tibftlserver -n default@localhost:8585`}
+</CodeBlock>
+Then in a separate terminal:
+<CodeBlock language="bash">
+{`/opt/tibco/ftl/${ftlVersionVars.ftlVersionTrunc}/samples/load-samples-config http://localhost:8585`}
+</CodeBlock>
+</TabItem>
+<TabItem value="windows">
+<CodeBlock language="batch">
+{`cd %TMP%\n`}
+{`set TIBFTL_LICENSE=preview_mode\n`}
+{`C:\\tibco\\ftl\\${ftlVersionVars.ftlVersionTrunc}\\bin\\tibftlserver.exe -n default@localhost:8585`}
+</CodeBlock>
+
+Then in a separate terminal:
+<CodeBlock language="batch">
+{`C:\\tibco\\ftl\\${ftlVersionVars.ftlVersionTrunc}\\samples\\load-samples-config.bat http://localhost:8585`}
+</CodeBlock>
+
+</TabItem>
+</OsTabs>
+
+We can then verify that the FTL server has started. The curl command should give the following response:
+
+<OsCodeBlock>{`curl -si localhost:8585/api/v1/available`}</OsCodeBlock>
+```
+HTTP/1.1 200 OK
+Content-Length: 0
+Date: Thu, 12 Feb 2026 22:05:49 GMT
+X-Xss-Protection: 1; mode=block
+```
+Once started, the FTL server user interface will be available at [http://localhost:8585](http://localhost:8585).
+## Run the Sample Applications
+Now that the FTL server is running, you can run the FTL sample applications. The following commands will run sample applications that publish and subscribe to a topic named `quickstart.topic`. To run them, open two different terminal windows, one for the FTL subscriber and one for the FTL publisher and then execute the following commands.
+<OsTabs>
+
+<TabItem value="linux">
+**Terminal 1 - Start the subscriber**
+<CodeBlock language="bash">
+{`/opt/tibco/ftl/${ftlVersionVars.ftlVersionTrunc}/samples/bin/advanced/tibftldest-recv -d quickstart.topic -c 10`}
+</CodeBlock>
+**Terminal 2 - Start the publisher**
+<CodeBlock language="bash">
+{`/opt/tibco/ftl/${ftlVersionVars.ftlVersionTrunc}/samples/bin/advanced/tibftldest-send -d quickstart.topic -c 10`}
+</CodeBlock>
+</TabItem>
+<TabItem value="windows">
+**Terminal 1 - Start the subscriber**
+<CodeBlock language="batch">
+{`C:\\tibco\\ftl\\${ftlVersionVars.ftlVersionTrunc}\\samples\\bin\\advanced\\tibftldest-recv.exe -d quickstart.topic -c 10`}
+</CodeBlock>
+**Terminal 2 - Start the publisher**
+<CodeBlock language="batch">
+{`C:\\tibco\\ftl\\${ftlVersionVars.ftlVersionTrunc}\\samples\\bin\\advanced\\tibftldest-send.exe -d quickstart.topic -c 10`}
+</CodeBlock>
+</TabItem>
+</OsTabs>
+
+We can use the `tibftldest-thru-recv` and `tibftldest-thru-send` samples to measure the throughput between a publisher and a subscriber on the topic `performance.topic`. These samples will send 500,000 messages and display the throughput measurements:
+
+<OsTabs>
+
+<TabItem value="linux">
+**Terminal 1 - Start the subscriber**
+<CodeBlock language="bash">
+{`/opt/tibco/ftl/${ftlVersionVars.ftlVersionTrunc}/samples/bin/advanced/tibftldest-thru-recv -d performance.topic`}
+</CodeBlock>
+
+**Terminal 2 - Start the publisher**
+<CodeBlock language="bash">
+{`/opt/tibco/ftl/${ftlVersionVars.ftlVersionTrunc}/samples/bin/advanced/tibftldest-thru-send -d performance.topic`}
+</CodeBlock>
+</TabItem>
+
+<TabItem value="windows">
+**Terminal 1 - Start the subscriber**
+<CodeBlock language='batch'>
+{`C:\\tibco\\ftl\\${ftlVersionVars.ftlVersionTrunc}\\samples\\bin\\advanced\\tibftldest-thru-recv.exe -d performance.topic`}
+</CodeBlock>
+
+**Terminal 2 - Start the publisher**
+<CodeBlock language='batch'>
+{`C:\\tibco\\ftl\\${ftlVersionVars.ftlVersionTrunc}\\samples\\bin\\advanced\\tibftldest-thru-send.exe -d performance.topic`}
+</CodeBlock>
+</TabItem>
+</OsTabs>
+
+The output will be a report of the throughput metrics with the format:
+
+```
+Sending 100 warmup message(s)
+Requested        500,000 messages.
+Sending        500,000 messages (500 batches of 1000) with payload size 16
+...
+```
+
+<details>
+<summary>TIBCO FTL offers a large variety of samples for different messaging patterns...</summary>
+
+Some other samples to explore are:
+
+
+<div style={{ display: "flex", justifyContent: "center" }}>
+<table style={{width: "100%"}}>
+  <tr>
+    <th>Publisher</th>
+    <th>Subscriber</th>
+    <th>Description</th>
+  </tr>
+  <tr>
+    <td style={{whiteSpace: "nowrap"}}>`tibftldest-map-set`</td>
+    <td style={{whiteSpace: "nowrap"}}>`tibftldest-map-get`</td>
+    <td>Basic program that sets/gets a message to from a map using the destinations messaging model.</td>
+  </tr>
+
+  <tr>
+    <td style={{whiteSpace: "nowrap"}}>`tibftldest-queue-send`</td>
+    <td style={{whiteSpace: "nowrap"}}>`tibftldest-queue-recv`</td>
+    <td>Basic program that sends/receives a message to a queue using the destinations messaging model.</td>
+  </tr>
+</table>
+</div>
+Use the `--help` flag to see the other options available for each sample.
+</details>
+
+## Monitor Your Server
+
+While the FTL server is running, you can access the FTL server user interface at [http://localhost:8585](http://localhost:8585) to monitor:
+- Active clients and connections
+- Destinations and stores
+- Server health and metrics
+
+You can also use the FTL REST API to gather JSON-formatted information. For instance, to gather monitoring information:
+
+<OsCodeBlock>{`curl http://localhost:8585/api/v1/server`}</OsCodeBlock>
+
+To see the REST API documentation, visit [http://localhost:8585/api/docs/](http://localhost:8585/api/docs/).
+
+
+## Stop the FTL Server
+
+If the server is running in the foreground, press `Ctrl+C` in the terminal running `tibftlserver`. Otherwise, terminate the process directly:
+
+<OsTabs>
+
+<TabItem value="linux">
+```bash
+pkill tibftlserver
+```
+</TabItem>
+
+<TabItem value="windows">
+```batch
+taskkill /IM tibftlserver.exe /F
+```
+</TabItem>
+</OsTabs>
+
+
+## Next Steps
+
+For additional information:
+
+- Browse the various samples offered and examine different messaging patterns.
+- Check the [TIBCO FTL documentation](https://docs.tibco.com/products/tibco-ftl-enterprise-edition) for advanced configuration and concepts.
+

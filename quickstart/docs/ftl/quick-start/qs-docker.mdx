@@ -1,0 +1,265 @@
+---
+title: "Run TIBCO FTL® in Docker"
+sidebar_label: "Run TIBCO FTL in Docker"
+pagination_next: null
+pagination_prev: null
+---
+import TabItem from '@theme/TabItem';
+import OsCodeBlock from '@site/src/components/OsCodeBlock';
+import OsTabs from '@site/src/components/OsTabs';
+import ftlVersionVars from '../../ftlVersionVars'
+
+## Prerequisites
+Before you start, you'll need:
+
+- [**Docker**](https://docs.docker.com/get-started/get-docker/) (version 23.0+ required) installed and running on your system
+- The latest `linux_x86_64` install of **TIBCO FTL** from the TIBCO download site
+
+## Download and Build
+
+Download the latest TIBCO FTL installation for **linux_x86_64** from the TIBCO download site. In the same directory, run these commands to
+fetch the quickstart Dockerfile and build the quickstart image.
+
+:::note
+ARM users (including modern Macs with Apple Silicon) **must include** the `--platform=linux/amd64` flag in all `docker` commands, as TIBCO FTL does not natively support ARM.
+:::
+
+<OsCodeBlock>{`curl -LO https://github.com/TIBCOSoftware/msg-quickstart/releases/latest/download/Dockerfile
+docker build --platform=linux/amd64 -t ftl-quickstart:7.3 .`}</OsCodeBlock>
+
+## Start the FTL Server
+
+This command will start FTL server in a container with the newly pulled image. The container runs the FTL server in `preview_mode`, which lets you run FTL without a license for 6 hours.
+
+
+<OsCodeBlock>{`docker run --platform=linux/amd64 --name ftlserver -p 8585:8585 -d ftl-quickstart:7.3`}</OsCodeBlock>
+
+<details>
+<summary>Optional: Use a license file instead of preview mode</summary>
+
+By default, the container starts in `preview_mode` (no license required, valid for 6 hours). If you have a TIBCO FTL license file, you can mount it into the container at `/license` and the server will use it automatically — no other changes needed.
+
+<OsTabs>
+
+<TabItem value="linux">
+```bash
+docker run --platform=linux/amd64 --name ftlserver -p 8585:8585 \
+           -v /path/to/license.bin:/license:ro \
+           -d ftl-quickstart:7.3
+```
+</TabItem>
+
+<TabItem value="windows">
+```batch
+docker run --platform=linux/amd64 --name ftlserver -p 8585:8585 ^
+           -v C:\path\to\license.bin:/license:ro ^
+           -d ftl-quickstart:7.3
+```
+</TabItem>
+
+</OsTabs>
+
+Replace `/path/to/license.bin` with the absolute path to your license file on the host.
+
+</details>
+
+We can then verify that the FTL server has started using a `tibftladmin` command:
+<OsTabs>
+
+<TabItem value="linux">
+```bash
+docker run --platform=linux/amd64 --rm --network container:ftlserver \
+           ftl-quickstart:7.3 tibftladmin \
+           -a -ftls "http://localhost:8585"
+```
+</TabItem>
+
+<TabItem value="windows">
+```batch
+docker run --platform=linux/amd64 --rm --network container:ftlserver ^
+           ftl-quickstart:7.3 tibftladmin ^
+           -a -ftls "http://localhost:8585"
+```
+</TabItem>
+
+</OsTabs>
+If the data FTL server started successfully, the output should look like:
+```
+Attempting to connnect to FTLServer 'http://localhost:8585' for command 'available'
+************************************************************
+TIBCO FTL FTLAdmin 7.3.0 V2
+Copyright 2009-2026 Cloud Software Group, Inc.
+All Rights Reserved.
+
+
+Executing available on FTL Server at [http://localhost:8585]
+
+************************************************************
+FTLserver is available
+```
+:::tip
+
+The FTL server uses port `8585`. This port may be already in use by another running process. If so, you can change the exposed port of the container to a different port by specifying:
+
+<OsCodeBlock>{`docker run --platform=linux/amd64 --name ftlserver -p <EXPOSED_PORT>:8585 ftl-quickstart:7.3`}</OsCodeBlock>
+
+You can access the FTL server using the link `http://localhost:<EXPOSED_PORT>`.
+
+:::
+Once started, the FTL Server user interface will be available at [http://localhost:8585](http://localhost:8585).
+
+## Run the Sample Applications
+
+Now that the FTL server is running, you can run the FTL sample applications. The following commands will run sample applications that publish and subscribe 10 messages (one every second) to a topic named `quickstart.topic`. To run them, open two different terminal windows, one for the FTL subscriber and one for the FTL publisher and then execute the following commands.
+
+<OsTabs>
+
+<TabItem value="linux">
+**Terminal 1 - Start the subscriber**
+```bash
+docker run --platform=linux/amd64 --network container:ftlserver \
+           --rm ftl-quickstart:7.3 \
+           tibftldest-recv -d quickstart.topic -c 10
+```
+
+**Terminal 2 - Start the publisher**
+```bash
+docker run --platform=linux/amd64 --network container:ftlserver \
+           --rm ftl-quickstart:7.3 \
+           tibftldest-send -d quickstart.topic -c 10
+```
+</TabItem>
+
+<TabItem value="windows">
+**Terminal 1 - Start the subscriber**
+```batch
+docker run --platform=linux/amd64 --network container:ftlserver ^
+           --rm ftl-quickstart:7.3 ^
+           tibftldest-recv -d quickstart.topic -c 10
+```
+
+**Terminal 2 - Start the publisher**
+```batch
+docker run --platform=linux/amd64 --network container:ftlserver ^
+           --rm ftl-quickstart:7.3 ^
+           tibftldest-send -d quickstart.topic -c 10
+```
+</TabItem>
+</OsTabs>
+
+We can use the `tibftldest-thru-recv` and `tibftldest-thru-send` samples to measure the throughput between a publisher and a subscriber on the topic `performance.topic`. These samples will send 500,000 messages and display the throughput measurements:
+
+<OsTabs>
+
+<TabItem value="linux">
+**Terminal 1 - Start the subscriber**
+```bash
+docker run --platform=linux/amd64 --network container:ftlserver \
+           --rm ftl-quickstart:7.3 \
+           tibftldest-thru-recv -d performance.topic
+```
+
+**Terminal 2 - Start the publisher**
+```bash
+docker run --platform=linux/amd64 --network container:ftlserver \
+           --rm ftl-quickstart:7.3 \
+           tibftldest-thru-send -d performance.topic
+```
+</TabItem>
+
+<TabItem value="windows">
+**Terminal 1 - Start the subscriber**
+```batch
+docker run --platform=linux/amd64 --network container:ftlserver ^
+           --rm ftl-quickstart:7.3 ^
+           tibftldest-thru-recv -d performance.topic
+```
+
+**Terminal 2 - Start the publisher**
+```batch
+docker run --platform=linux/amd64 --network container:ftlserver ^
+           --rm ftl-quickstart:7.3 ^
+           tibftldest-thru-send -d performance.topic
+```
+</TabItem>
+</OsTabs>
+
+The output will be a report of the throughput metrics with the format:
+
+```
+Sending 100 warmup message(s)
+Requested        500,000 messages.
+Sending        500,000 messages (500 batches of 1000) with payload size 16
+...
+```
+
+<details>
+<summary>TIBCO FTL offers a large variety of samples for different messaging patterns...</summary>
+
+Some other samples to explore are:
+
+<div style={{ display: "flex", justifyContent: "center" }}>
+<table style={{width: "100%"}}>
+  <tr>
+    <th>Publisher</th>
+    <th>Subscriber</th>
+    <th>Description</th>
+  </tr>
+  <tr>
+    <td style={{whiteSpace: "nowrap"}}>`tibftldest-map-set`</td>
+    <td style={{whiteSpace: "nowrap"}}>`tibftldest-map-get`</td>
+    <td>Basic program that sets/gets a message to from a map using the destinations messaging model.</td>
+  </tr>
+
+  <tr>
+    <td style={{whiteSpace: "nowrap"}}>`tibftldest-queue-send`</td>
+    <td style={{whiteSpace: "nowrap"}}>`tibftldest-queue-recv`</td>
+    <td>Basic program that sends/receives a message to a queue using the destinations messaging model.</td>
+  </tr>
+</table>
+</div>
+Use the `--help` flag to see the other options available for each sample.
+</details>
+
+## Monitor Your Server
+
+While the FTL server Docker container is running, you can access the FTL server user interface at [http://localhost:8585](http://localhost:8585) to monitor:
+- Active clients and connections
+- Destinations and stores
+- Server health and metrics
+
+You can also use the FTL REST API to gather JSON-formatted information. For instance, to gather monitoring information:
+
+<OsCodeBlock>{`curl http://localhost:8585/api/v1/server`}</OsCodeBlock>
+
+To see the REST API documentation, visit [http://localhost:8585/api/docs/](http://localhost:8585/api/docs/).
+
+## Stop the Server
+In order to stop the Docker container running the FTL server, execute the following commands.
+
+<OsCodeBlock>{`docker stop ftlserver`}</OsCodeBlock>
+
+To stop and completely remove the container along with its volumes, use this option:
+
+<OsCodeBlock>{`docker rm -fv ftlserver`}</OsCodeBlock>
+
+If you want to remove the newly created quickstart image, use this option:
+
+<OsCodeBlock>{`docker rmi ftl-quickstart:7.3`}</OsCodeBlock>
+
+:::info
+After the 6-hour `preview_mode` window, the FTL server exits and won't restart cleanly against the same state. Remove the container along with its volumes and start a fresh one:
+
+<OsCodeBlock>{`docker rm -fv ftlserver
+docker run --platform=linux/amd64 --name ftlserver -p 8585:8585 -d ftl-quickstart:7.3`}</OsCodeBlock>
+
+To avoid the 6-hour limit entirely, restart with a mounted license file — see [_Optional: Use a license file instead of preview mode_](#start-the-ftl-server) above.
+:::
+
+
+## Next Steps
+
+For additional information:
+
+- Browse the various samples offered and examine different messaging patterns.
+- Check the [TIBCO FTL documentation](https://docs.tibco.com/products/tibco-ftl-enterprise-edition) for advanced configuration and concepts.
