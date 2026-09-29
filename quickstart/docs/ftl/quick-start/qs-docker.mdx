@@ -24,7 +24,7 @@ fetch the quickstart Dockerfile and build the quickstart image.
 ARM users (including modern Macs with Apple Silicon) **must include** the `--platform=linux/amd64` flag in all `docker` commands, as TIBCO FTL does not natively support ARM.
 :::
 
-<OsCodeBlock>{`curl -LO https://github.com/TIBCOSoftware/msg-quickstart/releases/latest/download/Dockerfile
+<OsCodeBlock>{`curl -O https://raw.githubusercontent.com/TIBCOSoftware/msg-quickstart/refs/heads/main/quickstart/extra/ftl/Dockerfile
 docker build --platform=linux/amd64 -t ftl-quickstart:7.3 .`}</OsCodeBlock>
 
 ## Start the FTL Server
