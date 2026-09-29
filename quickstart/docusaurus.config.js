@@ -13,7 +13,7 @@ const config = {
   url: 'https://tibcosoftware.github.io',
   baseUrl: '/',
 
-  organizationName: 'tibco',
+  organizationName: 'TIBCOSoftware',
   projectName: 'msg-quickstart',
   deploymentBranch: 'gh-pages',
   trailingSlash: false,
