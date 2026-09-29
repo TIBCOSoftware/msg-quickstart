@@ -1,5 +1,17 @@
-.venv
-.vscode
-TIB_ftl*
-TIB_as*
-*.zip
+# Node dependencies
+**/node_modules/**
+
+# Builds
+build
+build-*
+
+# Generated files
+.docusaurus
+
+# Debug logs
+npm-debug.log*
+yarn-debug.log*
+yarn-error.log*
+
+.yarn
+*.lock
